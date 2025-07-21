@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: sheets-sync-api
+    runtime: python
+    buildCommand: ""
+    startCommand: gunicorn main:app
+    envVars:
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: credentials.json
