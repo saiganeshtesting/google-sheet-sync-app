@@ -7,7 +7,7 @@ import hashlib
 # AUTH SETUP
 # --------------------------
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-SERVICE_ACCOUNT_FILE = "credentials.json"
+SERVICE_ACCOUNT_FILE = "service_account.json"
 DELAY_BETWEEN_CALLS = 3  # seconds (to prevent rate limiting)
 
 creds = Credentials.from_service_account_file(
