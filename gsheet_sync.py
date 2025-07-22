@@ -20,7 +20,7 @@ def run_sync():
     creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     client = gspread.authorize(creds)
 
-    central_sheet = client.open("Central Sheet Name")  # replace with your actual sheet name
+    central_sheet = client.open("Central Sheet")
     config_ws = central_sheet.worksheet("config")
     sheet_urls = [row[0] for row in config_ws.get_all_values() if row]
 
