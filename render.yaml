@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: google-sheet-sync-app
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app -k uvicorn.workers.UvicornWorker
+    envVars:
+      - key: GOOGLE_APPLICATION_CREDENTIALS_JSON
+        value: <your_base64_encoded_credentials_here>
