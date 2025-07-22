@@ -2,6 +2,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 from collections import defaultdict
 import hashlib
+import json
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
