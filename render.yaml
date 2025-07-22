@@ -7,7 +7,7 @@ services:
     plan: free
     envVars:
       - key: CENTRAL_SHEET_URL
-        value: "https://docs.google.com/spreadsheets/d/1dd6q6fxvCNAGcNWBquJHjB3bccukxMT5pCewZ-3okDc"
+        value: "https://docs.google.com/spreadsheets/d/1dd6q6fxvCNAGcNWBquJHjB3bccukxMT5pCewZ-3okDc/edit?gid=0#gid=0"
     secretFiles:
       - name: credentials.json
         path: /etc/secrets/credentials.json
