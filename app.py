@@ -1,17 +1,21 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from gsheet_sync import sync_sheets
+from flask import Flask, jsonify
+from gsheet_sync import run_sync
 
-app = FastAPI()
+app = Flask(__name__)
 
-@app.get("/")
-def root():
-    return {"message": "✅ Google Sheet Sync App is live"}
+@app.route("/")
+def home():
+    return "✅ Google Sheet Sync App is Running!"
 
-@app.get("/sync")
+@app.route("/sync")
 def sync():
     try:
-        sync_sheets()
-        return JSONResponse(content={"status": "✅ Synced successfully"})
+        run_sync()
+        return jsonify({"status": "✅ Success", "details": "Sync completed."})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        import traceback
+        return jsonify({
+            "status": "❌ Error",
+            "details": str(e),
+            "trace": traceback.format_exc()
+        })

@@ -1,42 +1,31 @@
 import gspread
-from google.oauth2.service_account import Credentials
-import pandas as pd
-import os
+from oauth2client.service_account import ServiceAccountCredentials
 
-# Load credentials from Render's secret mount
-SERVICE_ACCOUNT_FILE = "/etc/secrets/credentials.json"
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+def run_sync():
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    
+    creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
+    client = gspread.authorize(creds)
 
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-client = gspread.authorize(creds)
+    # Read URLs from 'config' tab of your central sheet
+    central_sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/YOUR_CENTRAL_SHEET_ID")
+    config = central_sheet.worksheet("config")
+    urls = [row[0] for row in config.get_all_values()[1:] if row]
 
-def sync_sheets():
-    # Load the central sheet (with config and Central tab)
-    central_url = os.getenv("CENTRAL_SHEET_URL")  # Set this in Render environment
-    central_doc = client.open_by_url(central_url)
+    central_ws = central_sheet.worksheet("Central")
+    combined_data = []
 
-    config_sheet = central_doc.worksheet("config")
-    config_data = config_sheet.get_all_values()[1:]  # Skip header
-
-    all_data = []
-
-    for row in config_data:
-        url = row[0]
+    for url in urls:
         try:
-            src_doc = client.open_by_url(url)
-            for worksheet in src_doc.worksheets():
-                df = pd.DataFrame(worksheet.get_all_values())
-                if not df.empty:
-                    df.columns = df.iloc[0]
-                    df = df[1:]
-                    all_data.append(df)
+            sheet = client.open_by_url(url)
+            for ws in sheet.worksheets():
+                data = ws.get_all_values()
+                if data:
+                    combined_data.extend(data[1:] if data[0] == combined_data[0] else data)
         except Exception as e:
-            print(f"Failed to load: {url} due to {e}")
+            print(f"Skipping {url}: {e}")
+            continue
 
-    if all_data:
-        final_df = pd.concat(all_data, ignore_index=True)
-        central_ws = central_doc.worksheet("Central")
+    if combined_data:
         central_ws.clear()
-        central_ws.update(
-            [final_df.columns.values.tolist()] + final_df.values.tolist()
-        )
+        central_ws.update("A1", combined_data)

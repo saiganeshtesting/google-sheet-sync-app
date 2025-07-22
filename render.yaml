@@ -2,12 +2,28 @@ services:
   - type: web
     name: google-sheet-sync-app
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app:app --host 0.0.0.0 --port 10000
     plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    autoDeploy: true
+    region: oregon
+
+    # Optional: If you want to use environment variables instead of service_account.json file
     envVars:
-      - key: CENTRAL_SHEET_URL
-        value: "https://docs.google.com/spreadsheets/d/1dd6q6fxvCNAGcNWBquJHjB3bccukxMT5pCewZ-3okDc/edit?gid=0#gid=0"
-    secretFiles:
-      - name: credentials.json
-        path: /etc/secrets/credentials.json
+      - key: GOOGLE_SHEET_CREDS_JSON
+        value: |
+          {
+          "type": "service_account",
+          "project_id": "offshore-466318",
+          "private_key_id": "0d02dc92d94549ae1b39cbd72797e24083d6d994",
+          "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCVOTK7T6bSRG0o\npCx2/0Zgs92bEPtgA9RdwPgJJVHgtqD/DnXYt737Vh4idf3XZSgNzicHlAOZq93q\ncvMv/t8yrTLkEZNxymCq2m6uLzq+kxZTm9HUoLR9qiabpM8YQRS3KvSjEVxStnWR\nYM9Gn1BIzR0bEi32v5QhqxNASBYJ0ajYIHkIoP1FGAli26Dn5+EaWGAgq0fe+LA9\n7bjt6ceBCgHsjP6HYx8T8UyUXpItIL6evZiPaU8TlaYDNUKfBHOOq9dhTivTeF3g\nvwytPC44Fh5hQGuKwbjvOUtqS6u72jfwjkk4EAi/3dUkbNlsHqBPOW5lPWRUstd+\njAg08MAJAgMBAAECggEAB1Wmo/TMDRE+cU0yf03YUnf8yDqrNGKzzUDnICH0tpAb\ndTXrfnG3lZM7y3NTvQLUl2se2X1BuQusznGEeQM0ysufEP05K1JocnVmk8qv/z6B\nDi5+P45/mJ6ko6lT4YwPXdpvaFV53Xno6PKidYTuoAlu6Q35cuOjPw1m1pXEeYqA\noTMkl8fkA34dd7vSfdRsb8JTxB+dggsoGSkgY1mPixT+lrzyC5Koi8D7VA4cxbfN\nHDWgcdasAs1/3BNPSSW0vx+Uf0EXRJWSXziU/Vk7U0mjvSVEB0Nj7s/EyeVk7RY3\nCD4lA1m+M+Cnk4q+k2RELm0nEIBEPG198wbihIUbFQKBgQDK1wNbyVs5AQFNGh6X\nogCj266DNpLgqeesZKcdSZC0ySLV/yjOrAy/6ZnBEpWuJIepCTpzlsVhS6FLcoIz\nyRQZWUvGJXDw1dKM3bY1VR7ZfEUS+xwSPq7iVCl1oi+dt91f5AUqw4RClNSSTVkC\ngjtX+knmQoefCtOgK6AK9S1UbQKBgQC8VO9vJj11Uc6ycQwsNXqoslWUo2oH0/VJ\nrfw86bYfrk3BtsqLaEj9uDKfoWExc/qhWuH2YiZ+bC7fRyd+70qKvWfiwXhMhThi\n+qdkNtuS4SGv2BrWiwq8hdOlkZO79kR6jZ/Ozfi/BqEdyls3UpC5lZRlz6zKk/Eb\nbXqPFpZAjQKBgQC92y77lKbb3kL3hgEocKwksxTPIB+uRZnhVHzO/vKBJNqEbsYl\nXAi7AM23V8veKbcI0uhxFKg+/2lDkzSngAheCaTRHG5wHdNrooJPvRKZAqYss/l8\nYkuS8K+1uU7UUyrT/DuR4VtEbsXhAqDTpk4hdNYCvjbu+FVI0EyGtSHuqQKBgDj2\nP40Qtdn8KlZSVuowKq9HcRcJ7hH8C96DHx2VWp5ua9pBXTWZDyqeQcGCYBFDEPUo\ntdt9iEMImYyyysFbwuH/s6Ij/iy2xn05btOiu/rK2ROEe2mUmGS43XDgfRyGueOP\nXlyAc9HjQWvvPnOXJ2raUQ4SKCMFaBFxpXYN0NgpAoGBAJOYQyNzqwWc84498rlS\ndhx57e91Pg2RrHzs1oR8tD2q9ZOUuDtWDHbAfOL6+DrJQ6/5IXPAy7EzwrBDJ4Ru\nz6j+Cz88zHquZWwX9LVR+4fOP8/9CswmanSkudgS5D4V0zdaqxE5x1XkCewCxJJS\nWzTCU5MBkIEJuTcHJGzg+Hmy\n-----END PRIVATE KEY-----\n",
+          "client_email": "ganesh@offshore-466318.iam.gserviceaccount.com",
+          "client_id": "100047380571009182250",
+          "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+          "token_uri": "https://oauth2.googleapis.com/token",
+          "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+          "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ganesh%40offshore-466318.iam.gserviceaccount.com",
+          "universe_domain": "googleapis.com"
+          }
+
+
