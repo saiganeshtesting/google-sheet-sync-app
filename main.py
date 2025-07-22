@@ -2,13 +2,14 @@ import gspread
 from google.oauth2.service_account import Credentials
 import time
 import hashlib
+import os
 
 # --------------------------
 # AUTH SETUP
 # --------------------------
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-SERVICE_ACCOUNT_FILE = "service_account.json"
-DELAY_BETWEEN_CALLS = 3  # seconds (to prevent rate limiting)
+SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "service_account.json")
+DELAY_BETWEEN_CALLS = 3  # seconds
 
 creds = Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES
@@ -58,7 +59,7 @@ def collect_data_by_header(sheets_urls):
                     grouped_data[header_hash] = {"header": header, "rows": []}
                 grouped_data[header_hash]["rows"].extend(data_rows)
 
-                time.sleep(DELAY_BETWEEN_CALLS)  # Delay after each tab
+                time.sleep(DELAY_BETWEEN_CALLS)
         except Exception as e:
             print(f"⚠️ Error reading {url}: {e}")
             continue
@@ -80,7 +81,7 @@ def write_to_central_sheet(central_sheet, grouped_data):
 
             ws.update([group["header"]] + group["rows"])
             print(f"✅ Updated {sheet_name}")
-            time.sleep(DELAY_BETWEEN_CALLS)  # Delay after each write
+            time.sleep(DELAY_BETWEEN_CALLS)
         except Exception as e:
             print(f"❌ Failed to write {sheet_name}: {e}")
 
@@ -88,8 +89,7 @@ def write_to_central_sheet(central_sheet, grouped_data):
 # MAIN
 # --------------------------
 if __name__ == "__main__":
-    # Replace this URL with your own central sheet URL
-    CENTRAL_SHEET_URL = "https://docs.google.com/spreadsheets/d/1dd6q6fxvCNAGcNWBquJHjB3bccukxMT5pCewZ-3okDc/edit?gid=0#gid=0"
+    CENTRAL_SHEET_URL = "https://docs.google.com/spreadsheets/d/1dd6q6fxvCNAGcNWBquJHjB3bccukxMT5pCewZ-3okDc/edit?usp=sharing"
 
     central_sheet, sheet_urls = load_config_sheet(CENTRAL_SHEET_URL)
     if not central_sheet:
