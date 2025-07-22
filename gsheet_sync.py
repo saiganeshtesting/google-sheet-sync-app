@@ -1,9 +1,21 @@
+import os
+import base64
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 from collections import defaultdict
 
+def decode_credentials_if_needed():
+    if not os.path.exists("credentials.json"):
+        b64 = os.environ.get("CREDENTIALS_JSON_B64")
+        if b64:
+            with open("credentials.json", "wb") as f:
+                f.write(base64.b64decode(b64))
+        else:
+            raise Exception("Missing environment variable: CREDENTIALS_JSON_B64")
+
 def run_sync():
+    decode_credentials_if_needed()
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     client = gspread.authorize(creds)
