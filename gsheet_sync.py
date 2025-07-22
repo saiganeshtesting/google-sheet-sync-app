@@ -1,31 +1,50 @@
 import os
 import json
-import base64
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-def run_sync():
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
-
+def get_gspread_client():
     encoded = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
     if not encoded:
-        raise Exception("Missing GOOGLE_APPLICATION_CREDENTIALS_JSON env var")
+        raise ValueError("Missing GOOGLE_APPLICATION_CREDENTIALS_JSON env var")
 
-    creds_dict = json.loads(base64.b64decode(encoded).decode("utf-8"))
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    credentials_dict = json.loads(encoded)
+    scope = [
+        'https://spreadsheets.google.com/feeds',
+        'https://www.googleapis.com/auth/drive'
+    ]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
     client = gspread.authorize(creds)
+    return client
 
-    config_url = os.getenv("CONFIG_SHEET_URL")
-    if not config_url:
-        raise Exception("Missing CONFIG_SHEET_URL env var")
+def run_sync():
+    client = get_gspread_client()
 
-    sheet = client.open_by_url(config_url)
-    worksheet = sheet.worksheet("config")
-    data = worksheet.get_all_values()
+    # config tab: list of source sheet URLs
+    central_sheet = client.open("Central Sheet")  # change this if your sheet name is different
+    config_tab = central_sheet.worksheet("config")
+    urls = config_tab.col_values(1)[1:]  # Skip header
 
-    print("✅ Synced data from config:")
-    for row in data:
-        print(row)
+    central_tab = central_sheet.worksheet("Central")
+    all_data = []
+
+    for url in urls:
+        try:
+            sheet = client.open_by_url(url)
+            for worksheet in sheet.worksheets():
+                rows = worksheet.get_all_values()
+                if not rows:
+                    continue
+                headers = rows[0]
+                for row in rows[1:]:
+                    row_data = dict(zip(headers, row))
+                    row_data["source_tab"] = f"{sheet.title} - {worksheet.title}"
+                    all_data.append(row_data)
+        except Exception as e:
+            print(f"Error processing sheet {url}: {e}")
+
+    if all_data:
+        headers = list(all_data[0].keys())
+        values = [headers] + [[row.get(h, "") for h in headers] for row in all_data]
+        central_tab.clear()
+        central_tab.update("A1", values)
