@@ -1,9 +1,13 @@
 services:
   - type: web
-    name: sheets-sync-api
-    runtime: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: gunicorn app:app
+    name: google-sheet-sync-app
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port 10000
+    plan: free
     envVars:
-      - key: GOOGLE_APPLICATION_CREDENTIALS
-        value: credentials.json
+      - key: CENTRAL_SHEET_URL
+        value: "https://docs.google.com/spreadsheets/d/1dd6q6fxvCNAGcNWBquJHjB3bccukxMT5pCewZ-3okDc"
+    secretFiles:
+      - name: credentials.json
+        path: /etc/secrets/credentials.json
