@@ -3,8 +3,9 @@ uvicorn
 gspread
 oauth2client
 python-dotenv
-flask
-google-api-python-client
-google-auth
-google-auth-httplib2
-google-auth-oauthlib
+Flask
+gspread==6.0.2
+google-auth==2.29.0
+gunicorn
+Flask
+
