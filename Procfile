@@ -1,0 +1,1 @@
+web: python sync_core.py
