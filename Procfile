@@ -1,1 +1,1 @@
-web: python sync_core.py
+web: python run_sheets.py
