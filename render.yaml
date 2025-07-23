@@ -3,7 +3,7 @@ services:
     name: google-sheets-sync
     runtime: python
     repo: https://github.com/saiganeshtesting/google-sheet-sync-app
-    branch: master
+    branch: main
     schedule: "*/15 * * * *"  # runs every 15 minutes
     envVars:
       - key: GOOGLE_SHEETS_SECRET
