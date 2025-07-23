@@ -1,12 +1,13 @@
-from flask import Flask
-import subprocess
+from fastapi import FastAPI
+from sheets_sync.core import sync_sheets
 
-app = Flask(__name__)
+app = FastAPI()
 
-@app.route("/sync", methods=["GET"])
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
+
+@app.get("/sync")
 def run_sync():
-    subprocess.call(["python", "run_sheets.py"])
-    return "✅ Sync Complete"
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    result = sync_sheets()
+    return {"status": result}
