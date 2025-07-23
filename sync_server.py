@@ -1,9 +1,12 @@
-# sync_server.py
 from flask import Flask, request
 import threading
 import sync_core
 
 app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return "✅ Google Sheet Sync App is Running!"
 
 @app.route('/sync', methods=['POST'])
 def sync():
