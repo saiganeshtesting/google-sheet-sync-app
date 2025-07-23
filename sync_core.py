@@ -2,58 +2,39 @@ import gspread
 from google.oauth2.service_account import Credentials
 import os
 import base64
-import json
-from collections import defaultdict
 
-def get_credentials_from_env():
-    """
-    Reads GOOGLE_CREDS_BASE64 from environment, decodes, and returns Credentials object.
-    """
-    encoded = os.environ.get("GOOGLE_CREDS_BASE64")
-    if not encoded:
-        raise ValueError("GOOGLE_CREDS_BASE64 environment variable not set")
-
-    decoded = base64.b64decode(encoded)
-    creds_json = json.loads(decoded)
-    creds = Credentials.from_service_account_info(creds_json, scopes=["https://www.googleapis.com/auth/spreadsheets"])
-    return creds
+def save_credentials_from_env():
+    b64_creds = os.environ.get("GOOGLE_CREDS_BASE64")
+    if not b64_creds:
+        raise ValueError("GOOGLE_CREDS_BASE64 not found in environment variables")
+    
+    creds_json = base64.b64decode(b64_creds).decode("utf-8")
+    with open("/tmp/credentials.json", "w") as f:
+        f.write(creds_json)
+    return "/tmp/credentials.json"
 
 def main():
-    creds = get_credentials_from_env()
+    creds_path = save_credentials_from_env()
+    creds = Credentials.from_service_account_file(creds_path, scopes=["https://www.googleapis.com/auth/spreadsheets"])
     client = gspread.authorize(creds)
 
-    # Load central sheet
-    central_sheet_url = os.environ.get("CENTRAL_SHEET_URL")
-    central_sheet = client.open_by_url(central_sheet_url)
+    config_sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1i_Bu6s3of9KLRVYYlevq0RQqAEvfCoGk5OiukfoFMGQ")
+    config_tab = config_sheet.worksheet("config")
+    central_tab = config_sheet.worksheet("Central")
 
-    config_tab = central_sheet.worksheet("config")
-    urls = config_tab.col_values(1)[1:]  # Skip header row
-
-    grouped_data = defaultdict(list)
-
+    urls = config_tab.col_values(1)[1:]
+    all_rows = []
     for url in urls:
         try:
-            source_sheet = client.open_by_url(url)
-            for tab in source_sheet.worksheets():
-                values = tab.get_all_values()
-                if not values or not values[0]:
-                    continue  # skip empty tabs
-
-                header_row = tuple(values[0])
-                grouped_data[header_row].extend(values[1:])
+            sheet = client.open_by_url(url)
+            for ws in sheet.worksheets():
+                data = ws.get_all_values()
+                if data:
+                    all_rows.extend(data[1:])  # skip headers
         except Exception as e:
-            print(f"Error processing {url}: {e}")
+            print(f"Error reading {url}: {e}")
 
-    # Write data grouped by header into separate tabs
-    for header, rows in grouped_data.items():
-        tab_name = "Tab_" + str(abs(hash(header)) % 10000)  # generate tab name from header hash
-        try:
-            worksheet = central_sheet.worksheet(tab_name)
-            worksheet.clear()
-        except gspread.exceptions.WorksheetNotFound:
-            worksheet = central_sheet.add_worksheet(title=tab_name, rows="1000", cols="50")
-
-        worksheet.update([list(header)] + rows)
-
-if __name__ == "__main__":
-    main()
+    central_tab.clear()
+    if all_rows:
+        headers = ["Domain", "Client", "Location", "Email", "Phone Number", "Job Type", "Full JD"]
+        central_tab.update([headers] + all_rows)
